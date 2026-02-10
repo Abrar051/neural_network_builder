@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Interactive Neural Network Builder</title>
     <style>
         * {
@@ -23,6 +25,216 @@
             grid-template-columns: 320px 1fr 420px;
             height: 100vh;
             gap: 0;
+        }
+
+        /* Mobile responsive layout */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr auto;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            .config-panel {
+                max-height: 33vh;
+                overflow-y: auto;
+                border-bottom: 2px solid #667eea;
+            }
+
+            .viz-panel {
+                height: 34vh;
+                border-bottom: 2px solid #667eea;
+            }
+
+            .code-panel {
+                height: 33vh;
+                overflow-y: auto;
+            }
+
+            .config-panel h1 {
+                font-size: 20px;
+                margin-bottom: 8px;
+                padding-bottom: 8px;
+            }
+
+            .config-section {
+                margin: 15px 0;
+            }
+
+            .config-section h2 {
+                font-size: 14px;
+                margin-bottom: 8px;
+            }
+
+            .form-group {
+                margin-bottom: 10px;
+            }
+
+            .form-group label {
+                font-size: 12px;
+                margin-bottom: 4px;
+            }
+
+            select, input[type="number"], input[type="text"] {
+                padding: 8px;
+                font-size: 13px;
+            }
+
+            .layer-item {
+                padding: 10px;
+                margin: 6px 0;
+            }
+
+            .layer-title {
+                font-size: 12px;
+            }
+
+            .remove-btn {
+                padding: 3px 8px;
+                font-size: 11px;
+            }
+
+            .add-layer-btn, .build-btn {
+                padding: 10px;
+                font-size: 13px;
+                margin-top: 8px;
+            }
+
+            .build-btn {
+                margin-top: 15px;
+            }
+
+            .viz-info {
+                top: 10px;
+                left: 10px;
+                padding: 10px 12px;
+                max-width: 180px;
+            }
+
+            .viz-info h3 {
+                font-size: 12px;
+                margin-bottom: 6px;
+            }
+
+            .viz-info p {
+                font-size: 10px;
+                margin: 3px 0;
+            }
+
+            .viz-controls {
+                bottom: 10px;
+                left: 10px;
+                padding: 8px 12px;
+                max-width: 180px;
+            }
+
+            .viz-controls p {
+                font-size: 10px;
+                margin: 3px 0;
+            }
+
+            .reset-view-btn {
+                margin-top: 6px;
+                padding: 6px 12px;
+                font-size: 11px;
+            }
+
+            .code-panel h2 {
+                font-size: 16px;
+                margin-bottom: 10px;
+                padding-bottom: 8px;
+            }
+
+            .code-actions {
+                gap: 8px;
+                margin-bottom: 10px;
+            }
+
+            .copy-btn, .download-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            pre {
+                padding: 10px;
+                font-size: 11px;
+                line-height: 1.4;
+            }
+
+            .notification {
+                top: 10px;
+                right: 10px;
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+        }
+
+        /* Tablet landscape */
+        @media (min-width: 1025px) and (max-width: 1440px) {
+            .container {
+                grid-template-columns: 280px 1fr 380px;
+            }
+
+            .config-panel {
+                padding: 15px;
+            }
+
+            .code-panel {
+                padding: 15px;
+            }
+        }
+
+        /* Extra small mobile devices */
+        @media (max-width: 480px) {
+            .config-panel {
+                padding: 12px;
+            }
+
+            .config-panel h1 {
+                font-size: 18px;
+            }
+
+            .config-section h2 {
+                font-size: 13px;
+            }
+
+            .layer-item {
+                padding: 8px;
+            }
+
+            .viz-info {
+                font-size: 10px;
+                padding: 8px 10px;
+            }
+
+            .viz-info h3 {
+                font-size: 11px;
+            }
+
+            .viz-info p {
+                font-size: 9px;
+            }
+
+            .viz-controls {
+                padding: 6px 10px;
+            }
+
+            .viz-controls p {
+                font-size: 9px;
+            }
+
+            .code-panel {
+                padding: 12px;
+            }
+
+            .code-panel h2 {
+                font-size: 14px;
+            }
+
+            pre {
+                font-size: 10px;
+            }
         }
 
         .panel {
@@ -305,6 +517,78 @@
         .notification.show {
             opacity: 1;
         }
+
+        /* Mobile section toggle */
+        .section-toggle {
+            display: none;
+            background: #667eea;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        @media (max-width: 1024px) {
+            .section-toggle {
+                display: block;
+            }
+
+            .config-section.collapsed .section-content {
+                display: none;
+            }
+
+            .config-section h2 {
+                cursor: pointer;
+                user-select: none;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .config-section h2::after {
+                content: '▼';
+                font-size: 10px;
+                transition: transform 0.3s ease;
+            }
+
+            .config-section.collapsed h2::after {
+                transform: rotate(-90deg);
+            }
+        }
+
+        /* Improve touch targets on mobile */
+        @media (max-width: 1024px) {
+            button, select, input {
+                min-height: 44px;
+            }
+
+            .remove-btn {
+                min-height: 36px;
+                min-width: 60px;
+            }
+
+            .desktop-only {
+                display: none;
+            }
+
+            .mobile-only {
+                display: block;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .mobile-only {
+                display: none;
+            }
+
+            .desktop-only {
+                display: block;
+            }
+        }
     </style>
 </head>
 <body>
@@ -314,99 +598,111 @@
             <h1>🧠 Network Builder</h1>
             
             <div class="config-section">
-                <h2>Architecture Template</h2>
-                <div class="form-group">
-                    <label>Quick Start</label>
-                    <select id="architectureTemplate" onchange="loadTemplate()">
-                        <option value="custom">Custom Architecture</option>
-                        <option value="feedforward">Feedforward Neural Network</option>
-                        <option value="cnn">CNN (Convolutional)</option>
-                        <option value="rnn">RNN (Recurrent)</option>
-                        <option value="lstm">LSTM Network</option>
-                        <option value="gru">GRU Network</option>
-                        <option value="bidirectional_lstm">Bidirectional LSTM</option>
-                        <option value="autoencoder">Autoencoder</option>
-                        <option value="resnet">ResNet-like</option>
-                        <option value="vgg">VGG-like</option>
-                        <option value="transformer">Transformer Block</option>
-                        <option value="attention">Attention Network</option>
-                        <option value="conv_lstm">ConvLSTM Network</option>
-                    </select>
+                <h2 onclick="toggleSection(this)">Architecture Template</h2>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label>Quick Start</label>
+                        <select id="architectureTemplate" onchange="loadTemplate()">
+                            <option value="custom">Custom Architecture</option>
+                            <option value="feedforward">Feedforward Neural Network</option>
+                            <option value="cnn">CNN (Convolutional)</option>
+                            <option value="rnn">RNN (Recurrent)</option>
+                            <option value="lstm">LSTM Network</option>
+                            <option value="gru">GRU Network</option>
+                            <option value="bidirectional_lstm">Bidirectional LSTM</option>
+                            <option value="autoencoder">Autoencoder</option>
+                            <option value="resnet">ResNet-like</option>
+                            <option value="vgg">VGG-like</option>
+                            <option value="transformer">Transformer Block</option>
+                            <option value="attention">Attention Network</option>
+                            <option value="conv_lstm">ConvLSTM Network</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             
             <div class="config-section">
-                <h2>Network Type</h2>
-                <div class="form-group">
-                    <label>Model Type</label>
-                    <select id="modelType">
-                        <option value="Sequential">Sequential</option>
-                        <option value="Functional">Functional API</option>
-                    </select>
+                <h2 onclick="toggleSection(this)">Network Type</h2>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label>Model Type</label>
+                        <select id="modelType">
+                            <option value="Sequential">Sequential</option>
+                            <option value="Functional">Functional API</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
             <div class="config-section">
-                <h2>Input Configuration</h2>
-                <div class="form-group">
-                    <label>Input Shape</label>
-                    <input type="text" id="inputShape" placeholder="e.g., 784 or 28,28,1" value="784">
+                <h2 onclick="toggleSection(this)">Input Configuration</h2>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label>Input Shape</label>
+                        <input type="text" id="inputShape" placeholder="e.g., 784 or 28,28,1" value="784">
+                    </div>
                 </div>
             </div>
 
             <div class="config-section">
-                <h2>Hidden Layers</h2>
-                <div id="layersList"></div>
-                <button class="add-layer-btn" onclick="addLayer()">+ Add Layer</button>
-            </div>
-
-            <div class="config-section">
-                <h2>Output Layer</h2>
-                <div class="form-group">
-                    <label>Output Units</label>
-                    <input type="number" id="outputUnits" value="10" min="1">
-                </div>
-                <div class="form-group">
-                    <label>Output Activation</label>
-                    <select id="outputActivation">
-                        <option value="softmax">Softmax</option>
-                        <option value="sigmoid">Sigmoid</option>
-                        <option value="linear">Linear</option>
-                        <option value="tanh">Tanh</option>
-                    </select>
+                <h2 onclick="toggleSection(this)">Hidden Layers</h2>
+                <div class="section-content">
+                    <div id="layersList"></div>
+                    <button class="add-layer-btn" onclick="addLayer()">+ Add Layer</button>
                 </div>
             </div>
 
-            <div class="config-section">
-                <h2>Compilation</h2>
-                <div class="form-group">
-                    <label>Optimizer</label>
-                    <select id="optimizer">
-                        <option value="adam">Adam</option>
-                        <option value="sgd">SGD</option>
-                        <option value="rmsprop">RMSprop</option>
-                        <option value="adamw">AdamW</option>
-                        <option value="adagrad">Adagrad</option>
-                    </select>
+            <div class="config-section collapsed">
+                <h2 onclick="toggleSection(this)">Output Layer</h2>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label>Output Units</label>
+                        <input type="number" id="outputUnits" value="10" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Output Activation</label>
+                        <select id="outputActivation">
+                            <option value="softmax">Softmax</option>
+                            <option value="sigmoid">Sigmoid</option>
+                            <option value="linear">Linear</option>
+                            <option value="tanh">Tanh</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Loss Function</label>
-                    <select id="lossFunction">
-                        <option value="categorical_crossentropy">Categorical Crossentropy</option>
-                        <option value="sparse_categorical_crossentropy">Sparse Categorical Crossentropy</option>
-                        <option value="binary_crossentropy">Binary Crossentropy</option>
-                        <option value="mse">Mean Squared Error</option>
-                        <option value="mae">Mean Absolute Error</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Metrics</label>
-                    <select id="metrics">
-                        <option value="accuracy">Accuracy</option>
-                        <option value="precision">Precision</option>
-                        <option value="recall">Recall</option>
-                        <option value="auc">AUC</option>
-                    </select>
+            </div>
+
+            <div class="config-section collapsed">
+                <h2 onclick="toggleSection(this)">Compilation</h2>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label>Optimizer</label>
+                        <select id="optimizer">
+                            <option value="adam">Adam</option>
+                            <option value="sgd">SGD</option>
+                            <option value="rmsprop">RMSprop</option>
+                            <option value="adamw">AdamW</option>
+                            <option value="adagrad">Adagrad</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Loss Function</label>
+                        <select id="lossFunction">
+                            <option value="categorical_crossentropy">Categorical Crossentropy</option>
+                            <option value="sparse_categorical_crossentropy">Sparse Categorical Crossentropy</option>
+                            <option value="binary_crossentropy">Binary Crossentropy</option>
+                            <option value="mse">Mean Squared Error</option>
+                            <option value="mae">Mean Absolute Error</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Metrics</label>
+                        <select id="metrics">
+                            <option value="accuracy">Accuracy</option>
+                            <option value="precision">Precision</option>
+                            <option value="recall">Recall</option>
+                            <option value="auc">AUC</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -423,9 +719,12 @@
                 <p id="architecture">Architecture: Not built</p>
             </div>
             <div class="viz-controls">
-                <p>🖱️ <strong>Drag</strong> to rotate</p>
-                <p>🔍 <strong>Scroll</strong> to zoom</p>
-                <p>✋ <strong>Right-click</strong> to pan</p>
+                <p class="desktop-only">🖱️ <strong>Drag</strong> to rotate</p>
+                <p class="desktop-only">🔍 <strong>Scroll</strong> to zoom</p>
+                <p class="desktop-only">✋ <strong>Right-click</strong> to pan</p>
+                <p class="mobile-only">👆 <strong>One finger</strong> - rotate</p>
+                <p class="mobile-only">🤏 <strong>Pinch</strong> - zoom</p>
+                <p class="mobile-only">✌️ <strong>Two fingers</strong> - pan</p>
                 <button class="reset-view-btn" onclick="resetView()">Reset View</button>
             </div>
         </div>
@@ -631,6 +930,14 @@
             controls.enablePan = true;
             controls.minDistance = 5;
             controls.maxDistance = 30;
+            
+            // Mobile touch improvements
+            controls.touches = {
+                ONE: THREE.TOUCH.ROTATE,
+                TWO: THREE.TOUCH.DOLLY_PAN
+            };
+            controls.rotateSpeed = 0.5;
+            controls.zoomSpeed = 0.8;
             
             controls.addEventListener('start', () => {
                 autoRotate = false;
@@ -1106,6 +1413,14 @@ model.<span class="function">summary</span>()
                 controls.reset();
                 autoRotate = true;
                 showNotification('View reset! 🔄');
+            }
+        }
+
+        // Mobile section toggle
+        function toggleSection(header) {
+            if (window.innerWidth <= 1024) {
+                const section = header.parentElement;
+                section.classList.toggle('collapsed');
             }
         }
 
