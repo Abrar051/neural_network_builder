@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Neural Network Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 320px 1fr 420px;
+            height: 100vh;
+            gap: 0;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .panel::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .panel::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 4px;
+        }
+
+        .panel::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.8);
+        }
+
+        /* Configuration Panel */
+        .config-panel {
+            padding: 20px;
+        }
+
+        .config-panel h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .config-section {
+            margin: 25px 0;
+        }
+
+        .config-section h2 {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        select, input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        select:focus, input[type="number"]:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .layer-item {
+            background: #f8f9fa;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+
+        .layer-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .layer-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .remove-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+
+        .remove-btn:hover {
+            background: #c0392b;
+        }
+
+        .add-layer-btn, .build-btn {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .add-layer-btn:hover, .build-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .build-btn {
+            background: #2ecc71;
+            margin-top: 20px;
+        }
+
+        .build-btn:hover {
+            background: #27ae60;
+        }
+
+        /* Visualization Panel */
+        .viz-panel {
+            position: relative;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .viz-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .viz-info h3 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .viz-info p {
+            font-size: 12px;
+            color: #666;
+            margin: 4px 0;
+        }
+
+        .viz-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .viz-controls p {
+            font-size: 11px;
+            color: #666;
+            margin: 4px 0;
+        }
+
+        .reset-view-btn {
+            margin-top: 8px;
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        .reset-view-btn:hover {
+            background: #5568d3;
+        }
+
+        /* Code Panel */
+        .code-panel {
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+
+        .code-panel h2 {
+            color: #fff;
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .code-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .copy-btn, .download-btn {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .copy-btn:hover, .download-btn:hover {
+            background: #5568d3;
+        }
+
+        pre {
+            background: #252526;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.6;
+            border: 1px solid #3e3e42;
+        }
+
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            color: #d4d4d4;
+        }
+
+        .keyword { color: #569cd6; }
+        .string { color: #ce9178; }
+        .comment { color: #6a9955; }
+        .function { color: #dcdcaa; }
+        .number { color: #b5cea8; }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2ecc71;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Configuration Panel -->
+        <div class="panel config-panel">
+            <h1>🧠 Network Builder</h1>
+            
+            <div class="config-section">
+                <h2>Architecture Template</h2>
+                <div class="form-group">
+                    <label>Quick Start</label>
+                    <select id="architectureTemplate" onchange="loadTemplate()">
+                        <option value="custom">Custom Architecture</option>
+                        <option value="feedforward">Feedforward Neural Network</option>
+                        <option value="cnn">CNN (Convolutional)</option>
+                        <option value="rnn">RNN (Recurrent)</option>
+                        <option value="lstm">LSTM Network</option>
+                        <option value="gru">GRU Network</option>
+                        <option value="bidirectional_lstm">Bidirectional LSTM</option>
+                        <option value="autoencoder">Autoencoder</option>
+                        <option value="resnet">ResNet-like</option>
+                        <option value="vgg">VGG-like</option>
+                        <option value="transformer">Transformer Block</option>
+                        <option value="attention">Attention Network</option>
+                        <option value="conv_lstm">ConvLSTM Network</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="config-section">
+                <h2>Network Type</h2>
+                <div class="form-group">
+                    <label>Model Type</label>
+                    <select id="modelType">
+                        <option value="Sequential">Sequential</option>
+                        <option value="Functional">Functional API</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h2>Input Configuration</h2>
+                <div class="form-group">
+                    <label>Input Shape</label>
+                    <input type="text" id="inputShape" placeholder="e.g., 784 or 28,28,1" value="784">
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h2>Hidden Layers</h2>
+                <div id="layersList"></div>
+                <button class="add-layer-btn" onclick="addLayer()">+ Add Layer</button>
+            </div>
+
+            <div class="config-section">
+                <h2>Output Layer</h2>
+                <div class="form-group">
+                    <label>Output Units</label>
+                    <input type="number" id="outputUnits" value="10" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Output Activation</label>
+                    <select id="outputActivation">
+                        <option value="softmax">Softmax</option>
+                        <option value="sigmoid">Sigmoid</option>
+                        <option value="linear">Linear</option>
+                        <option value="tanh">Tanh</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h2>Compilation</h2>
+                <div class="form-group">
+                    <label>Optimizer</label>
+                    <select id="optimizer">
+                        <option value="adam">Adam</option>
+                        <option value="sgd">SGD</option>
+                        <option value="rmsprop">RMSprop</option>
+                        <option value="adamw">AdamW</option>
+                        <option value="adagrad">Adagrad</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Loss Function</label>
+                    <select id="lossFunction">
+                        <option value="categorical_crossentropy">Categorical Crossentropy</option>
+                        <option value="sparse_categorical_crossentropy">Sparse Categorical Crossentropy</option>
+                        <option value="binary_crossentropy">Binary Crossentropy</option>
+                        <option value="mse">Mean Squared Error</option>
+                        <option value="mae">Mean Absolute Error</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Metrics</label>
+                    <select id="metrics">
+                        <option value="accuracy">Accuracy</option>
+                        <option value="precision">Precision</option>
+                        <option value="recall">Recall</option>
+                        <option value="auc">AUC</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="build-btn" onclick="buildNetwork()">🚀 Build Network</button>
+        </div>
+
+        <!-- Visualization Panel -->
+        <div class="panel viz-panel">
+            <div id="canvas-container"></div>
+            <div class="viz-info" id="networkInfo">
+                <h3>Network Information</h3>
+                <p id="totalLayers">Total Layers: 0</p>
+                <p id="totalParams">Parameters: 0</p>
+                <p id="architecture">Architecture: Not built</p>
+            </div>
+            <div class="viz-controls">
+                <p>🖱️ <strong>Drag</strong> to rotate</p>
+                <p>🔍 <strong>Scroll</strong> to zoom</p>
+                <p>✋ <strong>Right-click</strong> to pan</p>
+                <button class="reset-view-btn" onclick="resetView()">Reset View</button>
+            </div>
+        </div>
+
+        <!-- Code Panel -->
+        <div class="panel code-panel">
+            <h2>📝 Generated Python Code</h2>
+            <div class="code-actions">
+                <button class="copy-btn" onclick="copyCode()">📋 Copy Code</button>
+                <button class="download-btn" onclick="downloadCode()">💾 Download .py</button>
+            </div>
+            <pre><code id="generatedCode">// Select an architecture template or click "Build Network" to generate Keras code...</code></pre>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        // Global state
+        let layers = [];
+        let scene, camera, renderer, networkGroup, controls;
+        let animationId;
+        let autoRotate = true;
+
+        // Architecture templates based on Keras documentation
+        const templates = {
+            feedforward: {
+                inputShape: '784',
+                layers: [
+                    { type: 'Dense', units: 256, activation: 'relu' },
+                    { type: 'Dropout', rate: 0.3 },
+                    { type: 'Dense', units: 128, activation: 'relu' },
+                    { type: 'Dropout', rate: 0.3 },
+                    { type: 'Dense', units: 64, activation: 'relu' }
+                ],
+                outputUnits: 10,
+                outputActivation: 'softmax'
+            },
+            cnn: {
+                inputShape: '28,28,1',
+                layers: [
+                    { type: 'Conv2D', filters: 32, kernelSize: 3, activation: 'relu' },
+                    { type: 'MaxPooling2D', poolSize: 2 },
+                    { type: 'Conv2D', filters: 64, kernelSize: 3, activation: 'relu' },
+                    { type: 'MaxPooling2D', poolSize: 2 },
+                    { type: 'Flatten' },
+                    { type: 'Dense', units: 128, activation: 'relu' },
+                    { type: 'Dropout', rate: 0.5 }
+                ],
+                outputUnits: 10,
+                outputActivation: 'softmax'
+            },
+            rnn: {
+                inputShape: '100,50',
+                layers: [
+                    { type: 'SimpleRNN', units: 128, returnSequences: true },
+                    { type: 'SimpleRNN', units: 64 },
+                    { type: 'Dense', units: 32, activation: 'relu' }
+                ],
+                outputUnits: 10,
+                outputActivation: 'softmax'
+            },
+            lstm: {
+                inputShape: '100,50',
+                layers: [
+                    { type: 'LSTM', units: 128, returnSequences: true },
+                    { type: 'Dropout', rate: 0.2 },
+                    { type: 'LSTM', units: 64 },
+                    { type: 'Dense', units: 32, activation: 'relu' }
+                ],
+                outputUnits: 10,
+                outputActivation: 'softmax'
+            },
+            gru: {
+                inputShape: '100,50',
+                layers: [
+                    { type: 'GRU', units: 128, returnSequences: true },
+                    { type: 'Dropout', rate: 0.2 },
+                    { type: 'GRU', units: 64 },
+                    { type: 'Dense', units: 32, activation: 'relu' }
+                ],
+                outputUnits: 10,
+                outputActivation: 'softmax'
+            },
+            bidirectional_lstm: {
+                inputShape: '100,50',
+                layers: [
+                    { type: 'Bidirectional', wrappedLayer: 'LSTM', units: 64, returnSequences: true },
+                    { type: 'Dropout', rate: 0.2 },
+                    { type: 'Bidirectional', wrappedLayer: 'LSTM', units: 32 },
+                    { type: 'Dense', units: 32, activation: 'relu' }
+                ],
+                outputUnits: 10,
+                outputActivation: 'softmax'
+            },
+            autoencoder: {
+                inputShape: '784',
+                layers: [
+                    { type: 'Dense', units: 256, activation: 'relu' },
+                    { type: 'Dense', units: 128, activation: 'relu' },
+                    { type: 'Dense', units: 64, activation: 'relu' },
+                    { type: 'Dense', units: 128, activation: 'relu' },
+                    { type: 'Dense', units: 256, activation: 'relu' }
+                ],
+                outputUnits: 784,
+                outputActivation: 'sigmoid'
+            },
+            resnet: {
+                inputShape: '32,32,3',
+                layers: [
+                    { type: 'Conv2D', filters: 32, kernelSize: 3, activation: 'relu' },
+                    { type: 'BatchNormalization' },
+                    { type: 'Conv2D', filters: 32, kernelSize: 3, activation: 'relu' },
+                    { type: 'MaxPooling2D', poolSize: 2 },
+                    { type: 'Conv2D', filters: 64, kernelSize: 3, activation: 'relu' },
+                    { type: 'BatchNormalization' },
+                    { type: 'GlobalAveragePooling2D' },
+                    { type: 'Dense', units: 128, activation: 'relu' }
+                ],
+                outputUnits: 10,
+                outputActivation: 'softmax'
+            },
+            vgg: {
+                inputShape: '224,224,3',
+                layers: [
+                    { type: 'Conv2D', filters: 64, kernelSize: 3, activation: 'relu' },
+                    { type: 'Conv2D', filters: 64, kernelSize: 3, activation: 'relu' },
+                    { type: 'MaxPooling2D', poolSize: 2 },
+                    { type: 'Conv2D', filters: 128, kernelSize: 3, activation: 'relu' },
+                    { type: 'Conv2D', filters: 128, kernelSize: 3, activation: 'relu' },
+                    { type: 'MaxPooling2D', poolSize: 2 },
+                    { type: 'Flatten' },
+                    { type: 'Dense', units: 256, activation: 'relu' },
+                    { type: 'Dropout', rate: 0.5 }
+                ],
+                outputUnits: 1000,
+                outputActivation: 'softmax'
+            },
+            transformer: {
+                inputShape: '100,512',
+                layers: [
+                    { type: 'MultiHeadAttention', numHeads: 8, keyDim: 64 },
+                    { type: 'LayerNormalization' },
+                    { type: 'Dense', units: 2048, activation: 'relu' },
+                    { type: 'Dense', units: 512 },
+                    { type: 'LayerNormalization' },
+                    { type: 'GlobalAveragePooling1D' },
+                    { type: 'Dense', units: 128, activation: 'relu' }
+                ],
+                outputUnits: 10,
+                outputActivation: 'softmax'
+            },
+            attention: {
+                inputShape: '100,64',
+                layers: [
+                    { type: 'LSTM', units: 128, returnSequences: true },
+                    { type: 'Attention' },
+                    { type: 'Dense', units: 64, activation: 'relu' }
+                ],
+                outputUnits: 10,
+                outputActivation: 'softmax'
+            },
+            conv_lstm: {
+                inputShape: '10,64,64,1',
+                layers: [
+                    { type: 'ConvLSTM2D', filters: 40, kernelSize: 3, returnSequences: true },
+                    { type: 'BatchNormalization' },
+                    { type: 'ConvLSTM2D', filters: 40, kernelSize: 3 },
+                    { type: 'Flatten' },
+                    { type: 'Dense', units: 128, activation: 'relu' }
+                ],
+                outputUnits: 10,
+                outputActivation: 'softmax'
+            }
+        };
+
+        // Initialize Three.js
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
+            
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a2e);
+            
+            camera = new THREE.PerspectiveCamera(
+                75,
+                container.clientWidth / container.clientHeight,
+                0.1,
+                1000
+            );
+            camera.position.z = 15;
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+            
+            // Add OrbitControls for dragging
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.enableZoom = true;
+            controls.enablePan = true;
+            controls.minDistance = 5;
+            controls.maxDistance = 30;
+            
+            controls.addEventListener('start', () => {
+                autoRotate = false;
+            });
+            
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 7.5);
+            scene.add(directionalLight);
+            
+            networkGroup = new THREE.Group();
+            scene.add(networkGroup);
+            
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+            
+            animate();
+        }
+
+        function animate() {
+            animationId = requestAnimationFrame(animate);
+            
+            if (networkGroup && autoRotate) {
+                networkGroup.rotation.y += 0.002;
+            }
+            
+            if (controls) {
+                controls.update();
+            }
+            
+            renderer.render(scene, camera);
+        }
+
+        function loadTemplate() {
+            const templateName = document.getElementById('architectureTemplate').value;
+            
+            if (templateName === 'custom') {
+                return;
+            }
+            
+            const template = templates[templateName];
+            if (!template) return;
+            
+            document.getElementById('inputShape').value = template.inputShape;
+            
+            layers = template.layers.map((layer, idx) => ({
+                id: idx,
+                ...layer
+            }));
+            
+            document.getElementById('outputUnits').value = template.outputUnits;
+            document.getElementById('outputActivation').value = template.outputActivation;
+            
+            renderLayers();
+            showNotification(`Loaded ${templateName.replace('_', ' ').toUpperCase()} template! 🎯`);
+        }
+
+        function addLayer() {
+            const layerId = layers.length;
+            layers.push({
+                id: layerId,
+                type: 'Dense',
+                units: 128,
+                activation: 'relu'
+            });
+            renderLayers();
+        }
+
+        function removeLayer(id) {
+            layers = layers.filter(layer => layer.id !== id);
+            layers.forEach((layer, idx) => layer.id = idx);
+            renderLayers();
+        }
+
+        function updateLayer(id, field, value) {
+            const layer = layers.find(l => l.id === id);
+            if (layer) {
+                if (field === 'type') {
+                    layer[field] = value;
+                    if (value === 'Dense' || value.includes('Conv')) {
+                        layer.units = layer.units || 128;
+                        layer.activation = layer.activation || 'relu';
+                    }
+                } else {
+                    layer[field] = value;
+                }
+                renderLayers();
+            }
+        }
+
+        function renderLayers() {
+            const container = document.getElementById('layersList');
+            container.innerHTML = layers.map(layer => `
+                <div class="layer-item">
+                    <div class="layer-item-header">
+                        <span class="layer-title">Layer ${layer.id + 1}: ${layer.type}</span>
+                        <button class="remove-btn" onclick="removeLayer(${layer.id})">Remove</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Layer Type</label>
+                        <select onchange="updateLayer(${layer.id}, 'type', this.value)">
+                            <option value="Dense" ${layer.type === 'Dense' ? 'selected' : ''}>Dense</option>
+                            <option value="Conv1D" ${layer.type === 'Conv1D' ? 'selected' : ''}>Conv1D</option>
+                            <option value="Conv2D" ${layer.type === 'Conv2D' ? 'selected' : ''}>Conv2D</option>
+                            <option value="Conv3D" ${layer.type === 'Conv3D' ? 'selected' : ''}>Conv3D</option>
+                            <option value="SeparableConv2D" ${layer.type === 'SeparableConv2D' ? 'selected' : ''}>SeparableConv2D</option>
+                            <option value="DepthwiseConv2D" ${layer.type === 'DepthwiseConv2D' ? 'selected' : ''}>DepthwiseConv2D</option>
+                            <option value="MaxPooling2D" ${layer.type === 'MaxPooling2D' ? 'selected' : ''}>MaxPooling2D</option>
+                            <option value="AveragePooling2D" ${layer.type === 'AveragePooling2D' ? 'selected' : ''}>AveragePooling2D</option>
+                            <option value="GlobalMaxPooling2D" ${layer.type === 'GlobalMaxPooling2D' ? 'selected' : ''}>GlobalMaxPooling2D</option>
+                            <option value="GlobalAveragePooling2D" ${layer.type === 'GlobalAveragePooling2D' ? 'selected' : ''}>GlobalAveragePooling2D</option>
+                            <option value="GlobalAveragePooling1D" ${layer.type === 'GlobalAveragePooling1D' ? 'selected' : ''}>GlobalAveragePooling1D</option>
+                            <option value="LSTM" ${layer.type === 'LSTM' ? 'selected' : ''}>LSTM</option>
+                            <option value="GRU" ${layer.type === 'GRU' ? 'selected' : ''}>GRU</option>
+                            <option value="SimpleRNN" ${layer.type === 'SimpleRNN' ? 'selected' : ''}>SimpleRNN</option>
+                            <option value="Bidirectional" ${layer.type === 'Bidirectional' ? 'selected' : ''}>Bidirectional</option>
+                            <option value="ConvLSTM2D" ${layer.type === 'ConvLSTM2D' ? 'selected' : ''}>ConvLSTM2D</option>
+                            <option value="MultiHeadAttention" ${layer.type === 'MultiHeadAttention' ? 'selected' : ''}>MultiHeadAttention</option>
+                            <option value="Attention" ${layer.type === 'Attention' ? 'selected' : ''}>Attention</option>
+                            <option value="Dropout" ${layer.type === 'Dropout' ? 'selected' : ''}>Dropout</option>
+                            <option value="SpatialDropout2D" ${layer.type === 'SpatialDropout2D' ? 'selected' : ''}>SpatialDropout2D</option>
+                            <option value="BatchNormalization" ${layer.type === 'BatchNormalization' ? 'selected' : ''}>BatchNormalization</option>
+                            <option value="LayerNormalization" ${layer.type === 'LayerNormalization' ? 'selected' : ''}>LayerNormalization</option>
+                            <option value="Flatten" ${layer.type === 'Flatten' ? 'selected' : ''}>Flatten</option>
+                            <option value="Embedding" ${layer.type === 'Embedding' ? 'selected' : ''}>Embedding</option>
+                        </select>
+                    </div>
+                    ${getLayerSpecificFields(layer)}
+                </div>
+            `).join('');
+        }
+
+        function getLayerSpecificFields(layer) {
+            let fields = '';
+            
+            if (['Dense', 'Conv1D', 'Conv2D', 'Conv3D', 'SeparableConv2D'].includes(layer.type)) {
+                const label = layer.type.includes('Conv') ? 'Filters' : 'Units';
+                const value = layer.filters || layer.units || 128;
+                fields += `
+                    <div class="form-group">
+                        <label>${label}</label>
+                        <input type="number" value="${value}" min="1" 
+                            onchange="updateLayer(${layer.id}, '${layer.type.includes('Conv') ? 'filters' : 'units'}', parseInt(this.value))">
+                    </div>
+                    <div class="form-group">
+                        <label>Activation</label>
+                        <select onchange="updateLayer(${layer.id}, 'activation', this.value)">
+                            <option value="relu" ${layer.activation === 'relu' ? 'selected' : ''}>ReLU</option>
+                            <option value="sigmoid" ${layer.activation === 'sigmoid' ? 'selected' : ''}>Sigmoid</option>
+                            <option value="tanh" ${layer.activation === 'tanh' ? 'selected' : ''}>Tanh</option>
+                            <option value="softmax" ${layer.activation === 'softmax' ? 'selected' : ''}>Softmax</option>
+                            <option value="leaky_relu" ${layer.activation === 'leaky_relu' ? 'selected' : ''}>Leaky ReLU</option>
+                            <option value="elu" ${layer.activation === 'elu' ? 'selected' : ''}>ELU</option>
+                            <option value="selu" ${layer.activation === 'selu' ? 'selected' : ''}>SELU</option>
+                            <option value="gelu" ${layer.activation === 'gelu' ? 'selected' : ''}>GELU</option>
+                        </select>
+                    </div>
+                `;
+                
+                if (layer.type.includes('Conv')) {
+                    fields += `
+                        <div class="form-group">
+                            <label>Kernel Size</label>
+                            <input type="number" value="${layer.kernelSize || 3}" min="1" 
+                                onchange="updateLayer(${layer.id}, 'kernelSize', parseInt(this.value))">
+                        </div>
+                    `;
+                }
+            }
+            
+            if (['LSTM', 'GRU', 'SimpleRNN'].includes(layer.type)) {
+                fields += `
+                    <div class="form-group">
+                        <label>Units</label>
+                        <input type="number" value="${layer.units || 128}" min="1" 
+                            onchange="updateLayer(${layer.id}, 'units', parseInt(this.value))">
+                    </div>
+                    <div class="form-group">
+                        <label>Return Sequences</label>
+                        <select onchange="updateLayer(${layer.id}, 'returnSequences', this.value === 'true')">
+                            <option value="false" ${!layer.returnSequences ? 'selected' : ''}>False</option>
+                            <option value="true" ${layer.returnSequences ? 'selected' : ''}>True</option>
+                        </select>
+                    </div>
+                `;
+            }
+            
+            if (layer.type === 'Dropout' || layer.type === 'SpatialDropout2D') {
+                fields += `
+                    <div class="form-group">
+                        <label>Rate</label>
+                        <input type="number" step="0.1" min="0" max="1" value="${layer.rate || 0.5}" 
+                            onchange="updateLayer(${layer.id}, 'rate', parseFloat(this.value))">
+                    </div>
+                `;
+            }
+            
+            if (layer.type.includes('Pooling') && !layer.type.includes('Global')) {
+                fields += `
+                    <div class="form-group">
+                        <label>Pool Size</label>
+                        <input type="number" value="${layer.poolSize || 2}" min="1" 
+                            onchange="updateLayer(${layer.id}, 'poolSize', parseInt(this.value))">
+                    </div>
+                `;
+            }
+
+            if (layer.type === 'Embedding') {
+                fields += `
+                    <div class="form-group">
+                        <label>Input Dim</label>
+                        <input type="number" value="${layer.inputDim || 10000}" min="1" 
+                            onchange="updateLayer(${layer.id}, 'inputDim', parseInt(this.value))">
+                    </div>
+                    <div class="form-group">
+                        <label>Output Dim</label>
+                        <input type="number" value="${layer.outputDim || 128}" min="1" 
+                            onchange="updateLayer(${layer.id}, 'outputDim', parseInt(this.value))">
+                    </div>
+                `;
+            }
+            
+            return fields;
+        }
+
+        function visualizeNetwork() {
+            while(networkGroup.children.length > 0) {
+                networkGroup.remove(networkGroup.children[0]);
+            }
+
+            const inputShape = document.getElementById('inputShape').value;
+            const outputUnits = parseInt(document.getElementById('outputUnits').value);
+            
+            const allLayers = [
+                { units: parseInt(inputShape.split(',')[0]) || parseInt(inputShape), name: 'Input' },
+                ...layers.map((l, i) => ({ 
+                    units: l.units || l.filters || 32, 
+                    name: `${l.type}` 
+                })),
+                { units: outputUnits, name: 'Output' }
+            ];
+
+            const spacing = 8;
+            const totalWidth = (allLayers.length - 1) * spacing;
+            const startX = -totalWidth / 2;
+            const layerMeshes = [];
+
+            allLayers.forEach((layer, layerIndex) => {
+                const x = startX + layerIndex * spacing;
+                const maxNeurons = Math.min(layer.units, 15);
+                const neuronSpacing = 0.6;
+                const layerHeight = (maxNeurons - 1) * neuronSpacing;
+                const startY = -layerHeight / 2;
+                const neurons = [];
+                
+                for (let i = 0; i < maxNeurons; i++) {
+                    const geometry = new THREE.SphereGeometry(0.25, 16, 16);
+                    const color = layerIndex === 0 ? 0x3498db : 
+                                  layerIndex === allLayers.length - 1 ? 0xe74c3c : 
+                                  0x2ecc71;
+                    const material = new THREE.MeshPhongMaterial({ 
+                        color: color,
+                        emissive: color,
+                        emissiveIntensity: 0.2,
+                        shininess: 100
+                    });
+                    const sphere = new THREE.Mesh(geometry, material);
+                    sphere.position.set(x, startY + i * neuronSpacing, 0);
+                    networkGroup.add(sphere);
+                    neurons.push(sphere);
+                }
+                
+                layerMeshes.push(neurons);
+            });
+
+            for (let i = 0; i < layerMeshes.length - 1; i++) {
+                const currentLayer = layerMeshes[i];
+                const nextLayer = layerMeshes[i + 1];
+                const connectionCount = Math.min(currentLayer.length * nextLayer.length, 100);
+                
+                for (let j = 0; j < connectionCount; j++) {
+                    const from = currentLayer[Math.floor(Math.random() * currentLayer.length)];
+                    const to = nextLayer[Math.floor(Math.random() * nextLayer.length)];
+                    const points = [from.position, to.position];
+                    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                    const material = new THREE.LineBasicMaterial({ 
+                        color: 0x667eea,
+                        transparent: true,
+                        opacity: 0.15
+                    });
+                    const line = new THREE.Line(geometry, material);
+                    networkGroup.add(line);
+                }
+            }
+
+            const totalParams = calculateParameters(allLayers);
+            document.getElementById('totalLayers').textContent = `Total Layers: ${allLayers.length}`;
+            document.getElementById('totalParams').textContent = `Parameters: ${totalParams.toLocaleString()}`;
+            document.getElementById('architecture').textContent = 
+                `Architecture: ${allLayers.slice(0, 5).map(l => l.units).join(' → ')}${allLayers.length > 5 ? '...' : ''}`;
+        }
+
+        function calculateParameters(allLayers) {
+            let total = 0;
+            for (let i = 1; i < allLayers.length; i++) {
+                total += (allLayers[i-1].units * allLayers[i].units) + allLayers[i].units;
+            }
+            return total;
+        }
+
+        function generateCode() {
+            const modelType = document.getElementById('modelType').value;
+            const inputShape = document.getElementById('inputShape').value;
+            const outputUnits = document.getElementById('outputUnits').value;
+            const outputActivation = document.getElementById('outputActivation').value;
+            const optimizer = document.getElementById('optimizer').value;
+            const lossFunction = document.getElementById('lossFunction').value;
+            const metrics = document.getElementById('metrics').value;
+
+            let code = `<span class="comment"># Import Keras 3 libraries</span>
+<span class="keyword">import</span> keras
+<span class="keyword">from</span> keras <span class="keyword">import</span> layers
+
+<span class="comment"># Define the model</span>
+`;
+
+            if (modelType === 'Sequential') {
+                code += `model = keras.<span class="function">Sequential</span>([
+    layers.<span class="function">Input</span>(shape=(<span class="number">${inputShape}</span>,)),
+`;
+                layers.forEach(layer => {
+                    code += generateLayerCode(layer, '    ');
+                });
+                code += `    layers.<span class="function">Dense</span>(<span class="number">${outputUnits}</span>, activation=<span class="string">"${outputActivation}"</span>)
+])
+`;
+            } else {
+                code += `inputs = layers.<span class="function">Input</span>(shape=(<span class="number">${inputShape}</span>,))
+x = inputs
+`;
+                layers.forEach(layer => {
+                    code += generateLayerCode(layer, '', true);
+                });
+                code += `outputs = layers.<span class="function">Dense</span>(<span class="number">${outputUnits}</span>, activation=<span class="string">"${outputActivation}"</span>)(x)
+
+model = keras.<span class="function">Model</span>(inputs=inputs, outputs=outputs)
+`;
+            }
+
+            code += `
+<span class="comment"># Compile the model</span>
+model.<span class="function">compile</span>(
+    optimizer=<span class="string">"${optimizer}"</span>,
+    loss=<span class="string">"${lossFunction}"</span>,
+    metrics=[<span class="string">"${metrics}"</span>]
+)
+
+<span class="comment"># Display model summary</span>
+model.<span class="function">summary</span>()
+
+<span class="comment"># Train the model</span>
+<span class="comment"># history = model.fit(x_train, y_train, epochs=10, batch_size=32, validation_split=0.2)</span>
+`;
+
+            document.getElementById('generatedCode').innerHTML = code;
+        }
+
+        function generateLayerCode(layer, indent = '', functional = false) {
+            let code = '';
+            const suffix = functional ? '(x)\n' : ',\n';
+            const prefix = functional ? 'x = ' : '';
+            
+            switch(layer.type) {
+                case 'Dense':
+                    code = `${indent}${prefix}layers.<span class="function">Dense</span>(<span class="number">${layer.units}</span>, activation=<span class="string">"${layer.activation}"</span>)${suffix}`;
+                    break;
+                case 'Conv1D':
+                case 'Conv2D':
+                case 'Conv3D':
+                case 'SeparableConv2D':
+                    const filters = layer.filters || layer.units || 32;
+                    const kernel = layer.kernelSize || 3;
+                    const act = layer.activation ? `, activation=<span class="string">"${layer.activation}"</span>` : '';
+                    code = `${indent}${prefix}layers.<span class="function">${layer.type}</span>(<span class="number">${filters}</span>, <span class="number">${kernel}</span>${act})${suffix}`;
+                    break;
+                case 'MaxPooling2D':
+                case 'AveragePooling2D':
+                    code = `${indent}${prefix}layers.<span class="function">${layer.type}</span>(pool_size=<span class="number">${layer.poolSize || 2}</span>)${suffix}`;
+                    break;
+                case 'GlobalMaxPooling2D':
+                case 'GlobalAveragePooling2D':
+                case 'GlobalAveragePooling1D':
+                case 'Flatten':
+                case 'BatchNormalization':
+                case 'LayerNormalization':
+                    code = `${indent}${prefix}layers.<span class="function">${layer.type}</span>()${suffix}`;
+                    break;
+                case 'LSTM':
+                case 'GRU':
+                case 'SimpleRNN':
+                    const returnSeq = layer.returnSequences ? ', return_sequences=<span class="keyword">True</span>' : '';
+                    code = `${indent}${prefix}layers.<span class="function">${layer.type}</span>(<span class="number">${layer.units}</span>${returnSeq})${suffix}`;
+                    break;
+                case 'Bidirectional':
+                    const wrapped = layer.wrappedLayer || 'LSTM';
+                    code = `${indent}${prefix}layers.<span class="function">Bidirectional</span>(layers.<span class="function">${wrapped}</span>(<span class="number">${layer.units}</span>))${suffix}`;
+                    break;
+                case 'ConvLSTM2D':
+                    code = `${indent}${prefix}layers.<span class="function">ConvLSTM2D</span>(<span class="number">${layer.filters || 40}</span>, <span class="number">${layer.kernelSize || 3}</span>)${suffix}`;
+                    break;
+                case 'MultiHeadAttention':
+                    code = `${indent}${prefix}layers.<span class="function">MultiHeadAttention</span>(num_heads=<span class="number">${layer.numHeads || 8}</span>, key_dim=<span class="number">${layer.keyDim || 64}</span>)(x, x)${functional ? '\n' : ',\n'}`;
+                    break;
+                case 'Attention':
+                    code = `${indent}${prefix}layers.<span class="function">Attention</span>()([x, x])${functional ? '\n' : ',\n'}`;
+                    break;
+                case 'Dropout':
+                case 'SpatialDropout2D':
+                    code = `${indent}${prefix}layers.<span class="function">${layer.type}</span>(<span class="number">${layer.rate || 0.5}</span>)${suffix}`;
+                    break;
+                case 'Embedding':
+                    code = `${indent}${prefix}layers.<span class="function">Embedding</span>(input_dim=<span class="number">${layer.inputDim || 10000}</span>, output_dim=<span class="number">${layer.outputDim || 128}</span>)${suffix}`;
+                    break;
+                default:
+                    code = `${indent}${prefix}layers.<span class="function">${layer.type}</span>()${suffix}`;
+            }
+            
+            return code;
+        }
+
+        function buildNetwork() {
+            visualizeNetwork();
+            generateCode();
+            showNotification('Network built successfully! 🎉');
+        }
+
+        function copyCode() {
+            const code = document.getElementById('generatedCode').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                showNotification('Code copied to clipboard! 📋');
+            });
+        }
+
+        function downloadCode() {
+            const code = document.getElementById('generatedCode').innerText;
+            const blob = new Blob([code], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'keras_model.py';
+            a.click();
+            URL.revokeObjectURL(url);
+            showNotification('Code downloaded! 💾');
+        }
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function resetView() {
+            if (camera && controls) {
+                camera.position.set(0, 0, 15);
+                controls.reset();
+                autoRotate = true;
+                showNotification('View reset! 🔄');
+            }
+        }
+
+        initThreeJS();
+        renderLayers();
+    </script>
+</body>
+</html>
